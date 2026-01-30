@@ -1,0 +1,168 @@
+---
+title: "Guadeloupe electricity data"
+author: "Antoine Debille"
+format: dashboard
+theme: sandstone
+---
+
+```{python}
+import pandas as pd
+import altair as alt
+
+df_gen_perc = pd.read_csv(f'bdd/2012_2024-Repartition_enr_fossiles_percentage-long.csv')
+df_k = pd.read_csv(f'bdd/2012_2024-Guadeloupe_installed_capacity-long.csv')
+df_hourly = pd.read_csv(f'bdd/2016_2024-Guadeloupe_hourly_electricity_generation-long.csv')
+df_gen_year = pd.read_csv(f'bdd/2016_2024-Guadeloupe_electricity_generation_yearly-long.csv')
+co2 = pd.read_csv(f'bdd/2017_2024-CO2_emissions.csv')
+```
+
+# Plots
+
+## Row {height=60%}
+
+```{python}
+#| title: Demand, installed capacity and electricity generation per year
+year_selector = alt.selection_point(
+    fields = ["year"],
+    bind = alt.binding_select(
+        options = sorted(df_gen_year['year'].unique()),
+        name = "Year: "
+    ),
+    value = df_gen_year["year"].max()
+)
+
+pie1 = alt.Chart(df_k, title=alt.Title('Installed capacities (MW)', dy=-20)).mark_arc(innerRadius=50).encode(
+    alt.Theta("installed_capacity", stack=True),
+    alt.Color("energy_type",
+        title="Energy sources",
+        scale = alt.Scale(
+            domain = ['Bagasse & coal', 'Batteries', 'Bioenergies', 'Geothermy', 'Hydraulic','Photovoltaic', 'Thermal', 'Wind'],
+            range = ['silver','orange','green','brown','blue','gold','dimgrey','teal']
+        )
+    ),
+    tooltip = [
+    alt.Tooltip('energy_type', title = "Energy source"),
+    alt.Tooltip('installed_capacity', title="Installed capacity (MW)", format='.0f')
+    ]
+).transform_filter(year_selector).properties(width=500)
+
+labels1 = pie1.mark_text(radius=180, size=18).encode(
+    theta=alt.Theta("installed_capacity", stack=True),
+    text=alt.Text("installed_capacity", format='.0f')
+)
+
+fig1 = pie1 + labels1
+
+pie2 = alt.Chart(df_gen_year, title=alt.Title('Electricity generation per energy source (MWh)', dy=-20)).mark_arc(innerRadius=50).encode(
+    alt.Theta("generation_mwh", stack=True),
+    alt.Color('energy sources',
+        title="Energy sources",
+        scale = alt.Scale(
+            domain = ['Bagasse & coal', 'Batteries', 'Bioenergies', 'Geothermy', 'Hydraulic','Photovoltaic', 'Thermal', 'Wind'],
+            range = ['silver','orange','green','brown','blue','gold','dimgrey','teal']
+        )
+    ),
+    tooltip = [
+    alt.Tooltip('energy sources', title="Energy source"),
+    alt.Tooltip('generation_mwh', title="Electricity generation (MWh)", format=',.0f')
+    ]
+).transform_filter(year_selector).properties(width=500)
+
+labels2 = pie2.mark_text(radius=180, size=18).encode(
+    theta = alt.Theta("generation_mwh", stack=True),
+    text=alt.Text("generation_mwh", format=',.0f')
+)
+
+fig2 = pie2 + labels2
+
+value_box = alt.Chart(df_gen_year).transform_filter(year_selector).transform_aggregate(
+    total_generation="sum(generation_mwh)").mark_text(
+        align="center",
+        baseline="middle",
+        fontSize=36,
+        fontWeight="bold"
+    ).encode(
+        text=alt.Text("total_generation:Q", format=",.1f")
+    ).properties(
+        width=300,
+        height=200,
+        title="Total demand (MWh)"
+    )
+    
+linked_charts = (
+    alt.hconcat(value_box, fig1, fig2, spacing=30).add_params(year_selector)
+)
+
+linked_charts.show()
+```
+
+## Row
+
+## Column
+
+```{python}
+#| title : Electricity generation repartition
+chart1 = alt.Chart(df_gen_perc).mark_bar().encode(
+    x = alt.X('year:N', title="Years"),
+    y = alt.Y('share', title="Share of energy"),
+    color = alt.Color('energy_type',
+        scale = alt.Scale(
+            domain=['Fossil fuel sources','Renewable sources'],
+            range=['lightgrey', 'green']
+        ),
+        title='Energy sources'
+    ),
+    tooltip = [
+        alt.Tooltip("year:N", title="Year"),
+        alt.Tooltip("share", title="Share of energy", format=".2%")
+    ],
+    
+).interactive().configure_axisY(
+    format='.0%'
+).configure_axisX(
+    labelAngle=0
+)
+chart1.show()
+```
+
+```{python}
+#| title : Electricity generation CO2 emissions in kt
+chart2 = alt.Chart(co2).mark_area(
+        line = {'color':'darkgreen'},
+        point = True,
+        opacity = 0.3
+    ).encode(
+        x= alt.X('year:N', title='Year'),
+        y= alt.Y('CO2 emissions (kt)', title="CO2 emissions in kt"),
+        tooltip = [
+            alt.Tooltip("year:N", title="Year"),
+            alt.Tooltip('CO2 emissions (kt)', title="CO2 emissions (kt)")
+        ],
+    ).configure_axisX(
+        labelAngle=0
+    )
+
+chart2.show()
+```
+
+# Data
+
+## Row {.fill}
+
+```{python}
+#| title: Hourly electricity generation in MWh, per energy sources, per year (2016 - 2024)
+from itables import show
+import itables
+
+df_hourly_wide = pd.read_csv(f'bdd/2016_2024-Guadeloupe_hourly_electricity_generation.csv')
+df_hourly_wide.columns = ['Year', 'Date & Hour', 'Thermal', 'Hydraulic', 'Wind', 'Geothermy', 'Bioenergies', 'Bagasse & Coal', "PV"]
+pd.options.display.float_format = '{:.2f}'.format
+show(df_hourly_wide, searching=False)    
+```
+
+# Resources
+
+Data sources :
+
+[1] [Open Data EDF-SEI](https://opendata-guadeloupe.edf.fr/)  
+[2] [Synerg'îles - OREC - Bases de données](https://www.synergile.fr/bases-de-donnees/)
