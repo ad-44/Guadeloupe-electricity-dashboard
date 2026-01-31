@@ -6,6 +6,4 @@ main_files/
 __pycache__/
 .envrc
 bdd/
-flake.nix
-flake.lock
 .direnv
