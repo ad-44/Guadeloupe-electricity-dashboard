@@ -1,8 +1,11 @@
 ---
 title: "Guadeloupe electricity data"
 author: "Antoine Debille"
-format: dashboard
-theme: sandstone
+format:
+    html:
+        theme: sandstone
+        self-contained: true
+dashboard: true
 ---
 
 ```{python}
