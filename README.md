@@ -3,6 +3,8 @@
 This repository contain a Quarto dashboard presenting an overview of Guadeloupe archipelago electricity system.
 The dashboard focus on electricity generation trends from 2016 to 2024.
 
+Dashboard link : <https://ad-44.github.io/Guadeloupe-electricity-dashboard/>
+
 ## Dashboard content
 
 The dashboard includes:
