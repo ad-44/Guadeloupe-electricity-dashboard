@@ -11,4 +11,6 @@ tryout.py
 main_files/
 __pycache__/
 .envrc
-.direnv/
+bdd/
+flake.nix
+flake.lock
