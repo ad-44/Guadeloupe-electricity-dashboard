@@ -1,9 +1,3 @@
-bdd/2012_2024-Guadeloupe_generation_filiere_mwh.csv
-bdd/2012_2024-Guadeloupe_installed_capacity.csv
-bdd/2012_2024-Repartition_enr_fossiles_percentage.csv
-bdd/2012_2024-Guadeloupe_repartition_enr_fossile_mwh.csv
-bdd/2016_2024-Guadeloupe_hourly_electricity_generation.csv
-bdd/2012_2024-Guadeloupe_generation_filiere_percentage.csv
 chart_tryout.py
 functions.py
 notes_todo.md
@@ -14,3 +8,4 @@ __pycache__/
 bdd/
 flake.nix
 flake.lock
+.direnv
